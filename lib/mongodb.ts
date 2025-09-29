@@ -9,7 +9,7 @@ if (!MONGODB_URI) {
 let isConnected = false;
 
 export async function connectDB(): Promise<void> {
-  if (!isConnected) return;
+  if (isConnected) return;
 
   try {
     await mongoose.connect(MONGODB_URI);
