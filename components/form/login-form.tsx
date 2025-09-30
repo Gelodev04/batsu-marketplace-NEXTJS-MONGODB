@@ -12,8 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { toast } from "sonner";
@@ -23,16 +23,37 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
+  useEffect(() => {
+    const urlError = searchParams.get("error");
+    if (!urlError) return;
+
+    if (urlError === "OAuthAccountNotLinked" || urlError === "AccessDenied") {
+      setError(
+        "This email is registered with a password. Please sign in with email and password."
+      );
+    } else if (urlError === "CredentialsSignin") {
+      setError("Invalid email or password");
+    } else {
+      setError("Unable to sign in. Please try again.");
+    }
+
+    const next = new URLSearchParams(searchParams.toString());
+    next.delete("error");
+    router.replace(`${pathname}?${next.toString()}`, { scroll: false });
+  }, [searchParams, pathname, router]);
+
   const handleGoogle = async () => {
     setGoogleLoading(true);
     try {
-      await signIn("google", { callbackUrl: "/dashboard" });
+      await signIn("google", { callbackUrl: "/dashboard?toast=login-success" });
     } finally {
       setGoogleLoading(false);
     }

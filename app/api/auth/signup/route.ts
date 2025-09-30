@@ -5,10 +5,22 @@ import User from "@/models/User";
 
 export async function POST(req: Request) {
   try {
-    const { name, email, password } = await req.json();
+    const { name, email, password, campus } = await req.json();
 
-    if (!name || !email || !password) {
+    if (!name || !email || !password || !campus) {
       return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    }
+
+    if (password.length < 8) {
+      return NextResponse.json(
+        { error: "Password must be at least 8 characters long" },
+        { status: 400 }
+      );
+    }
+
+    const allowed = ["alangilan", "pablo-borbon"];
+    if (!allowed.includes(campus)) {
+      return NextResponse.json({ error: "Invalid campus" }, { status: 400 });
     }
 
     await connectDB();
@@ -28,6 +40,7 @@ export async function POST(req: Request) {
       email,
       password: hashedPassword,
       role: "student",
+      campus,
     });
 
     await newUser.save();

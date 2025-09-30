@@ -14,6 +14,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import CircularProgress from "@mui/material/CircularProgress";
 import { toast } from "sonner";
+import CampusSelect from "@/components/select/campus-select";
+import { type CampusId } from "@/lib/campus";
+import { signup } from "@/lib/auth/auth";
+import { signIn } from "next-auth/react";
 
 export function SignupForm({
   className,
@@ -23,35 +27,41 @@ export function SignupForm({
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [campus, setCampus] = useState<CampusId | "">("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleSignup = async () => {
+    setGoogleLoading(true);
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
 
-    try {
-      const res = await fetch("/api/auth/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, password }),
-      });
-
-      const data = await res.json();
-
-      if (res.ok) {
-        toast.success("Signup successful")
-        router.push("/login"); // ✅ redirect to login
-      } else {
-        toast.error("Signup failed")
-        setError(data.error || "Something went wrong");
-      }
-    } catch (err) {
-      setError("Something went wrong");
-    } finally {
+    if (!campus || !name || !password || !email) {
+      setError("Missing fields");
       setLoading(false);
+      return;
     }
+
+    const result = await signup({ name, email, password, campus });
+
+    if (result.ok) {
+      toast.success("Signup successful");
+      router.push("/login");
+    } else {
+      setError(result.error || "Something went wrong");
+    }
+
+    setLoading(false);
   };
 
   return (
@@ -76,7 +86,6 @@ export function SignupForm({
                 <Input
                   id="name"
                   type="text"
-                  required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   disabled={loading}
@@ -88,7 +97,6 @@ export function SignupForm({
                   id="email"
                   type="email"
                   placeholder="m@example.com"
-                  required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   disabled={loading}
@@ -107,20 +115,40 @@ export function SignupForm({
                 <Input
                   id="password"
                   type="password"
-                  required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   disabled={loading}
                 />
               </div>
+
+              <div className="grid gap-3">
+                <Label htmlFor="campus">Campus</Label>
+                <CampusSelect
+                  value={campus}
+                  onChange={(v) => setCampus(v)}
+                  disabled={loading}
+                />
+              </div>
+
               <div className="flex flex-col gap-3">
                 <Button type="submit" className="w-full" disabled={loading}>
                   {loading && <CircularProgress size={16} />}
                   {loading ? "Signing up..." : "Signup"}
                 </Button>
-                {/* <Button variant="outline" className="w-full">
-                  Login with Google
-                </Button> */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2"
+                  onClick={handleGoogleSignup}
+                  disabled={googleLoading}
+                >
+                  {googleLoading && (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                  )}
+                  {googleLoading
+                    ? "Connecting to Google..."
+                    : "Sign up with Google"}
+                </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">

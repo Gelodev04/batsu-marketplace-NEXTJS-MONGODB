@@ -16,8 +16,19 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         await connectDB();
 
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Missing credentials");
+        }
+
         const user = await User.findOne({ email: credentials?.email });
+
         if (!user) throw new Error("No user found");
+
+        if (!user.password) {
+          throw new Error(
+            "This email is registered with Google. Continue with Google."
+          );
+        }
 
         const isPasswordValid = await bcrypt.compare(
           credentials!.password,
@@ -42,12 +53,19 @@ export const authOptions: NextAuthOptions = {
     async signIn({ user, account, profile }) {
       if (account?.provider === "google") {
         await connectDB();
+
         const existingUser = await User.findOne({ email: user.email });
+
+        if (existingUser && existingUser.password) {
+          return "/login?error=OAuthAccountNotLinked";
+        }
+
         if (!existingUser) {
           await User.create({
             name: user.name,
             email: user.email,
             role: "student",
+            campus: "alangilan",
           });
         }
       }
@@ -82,6 +100,7 @@ export const authOptions: NextAuthOptions = {
   },
   pages: {
     signIn: "/login",
+    error: "/login",
   },
 };
 
