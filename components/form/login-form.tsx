@@ -1,3 +1,6 @@
+// components/form/login-form.tsx
+"use client";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { signIn } from "next-auth/react";
+import CircularProgress from "@mui/material/CircularProgress";
+import { toast } from "sonner";
 
 export function LoginForm({
   className,
@@ -21,20 +26,47 @@ export function LoginForm({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogle = async () => {
+    setGoogleLoading(true);
+    try {
+      await signIn("google", { callbackUrl: "/dashboard" });
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const res = await signIn("credentials", {
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const res = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
 
-    if (res?.error) {
-      setError("Invalid email or password");
-    } else {
-      router.push("/dashboard"); // ✅ redirect after login
+      if (res?.error) {
+        toast.error("Login failed");
+        if (res.error === "CredentialsSignin") {
+          setError("Invalid email or password");
+        } else if (res.error === "CallbackRouteError") {
+          setError("Unable to sign in. Please try again.");
+        } else {
+          setError(res.error);
+        }
+      } else {
+        toast.success("Login successful");
+        router.push("/dashboard");
+      }
+    } catch (err) {
+      setError("Network error. Please check your connection.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,6 +82,11 @@ export function LoginForm({
         <CardContent>
           <form onSubmit={handleLogin}>
             <div className="flex flex-col gap-6">
+              {error && (
+                <div className="text-red-500 text-sm bg-red-50 p-3 rounded-md">
+                  {error}
+                </div>
+              )}
               <div className="grid gap-3">
                 <Label htmlFor="email">Email</Label>
                 <Input
@@ -59,6 +96,7 @@ export function LoginForm({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                 />
               </div>
               <div className="grid gap-3">
@@ -77,15 +115,32 @@ export function LoginForm({
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Login
+                <Button
+                  type="submit"
+                  className="w-full flex items-center justify-center"
+                  disabled={loading}
+                >
+                  {loading && <CircularProgress size={16} />}
+                  {loading ? "Signing in..." : "Login"}
                 </Button>
-                {/* <Button variant="outline" className="w-full">
-                  Login with Google
-                </Button> */}
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full flex items-center justify-center gap-2"
+                  onClick={handleGoogle}
+                  disabled={googleLoading}
+                >
+                  {googleLoading && (
+                    <span className="h-4 w-4 animate-spin rounded-full border-2 border-muted-foreground border-t-transparent" />
+                  )}
+                  {googleLoading
+                    ? "Connecting to Google..."
+                    : "Continue with Google"}
+                </Button>
               </div>
             </div>
             <div className="mt-4 text-center text-sm">

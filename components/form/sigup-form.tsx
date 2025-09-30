@@ -1,3 +1,4 @@
+"use client";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,32 +12,45 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
+import CircularProgress from "@mui/material/CircularProgress";
+import { toast } from "sonner";
 
 export function SignupForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
+    setError("");
 
-    const res = await signIn("credentials", {
-      name,
-      email,
-      password,
-      redirect: false,
-    });
+    try {
+      const res = await fetch("/api/auth/signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    if (res?.error) {
-      setError("Invalid name or email or password");
-    } else {
-      router.push("/dashboard"); // ✅ redirect after login
+      const data = await res.json();
+
+      if (res.ok) {
+        toast.success("Signup successful")
+        router.push("/login"); // ✅ redirect to login
+      } else {
+        toast.error("Signup failed")
+        setError(data.error || "Something went wrong");
+      }
+    } catch (err) {
+      setError("Something went wrong");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,15 +66,20 @@ export function SignupForm({
         <CardContent>
           <form onSubmit={handleSignup}>
             <div className="flex flex-col gap-6">
+              {error && (
+                <div className="text-red-500 text-sm bg-red-50 p-3 rounded-md">
+                  {error}
+                </div>
+              )}
               <div className="grid gap-3">
                 <Label htmlFor="email">Name</Label>
                 <Input
                   id="name"
                   type="text"
-                  placeholder="m@example.com"
                   required
                   value={name}
                   onChange={(e) => setName(e.target.value)}
+                  disabled={loading}
                 />
               </div>
               <div className="grid gap-3">
@@ -72,6 +91,7 @@ export function SignupForm({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={loading}
                 />
               </div>
               <div className="grid gap-3">
@@ -90,11 +110,13 @@ export function SignupForm({
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={loading}
                 />
               </div>
               <div className="flex flex-col gap-3">
-                <Button type="submit" className="w-full">
-                  Signup
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading && <CircularProgress size={16} />}
+                  {loading ? "Signing up..." : "Signup"}
                 </Button>
                 {/* <Button variant="outline" className="w-full">
                   Login with Google
@@ -104,7 +126,7 @@ export function SignupForm({
             <div className="mt-4 text-center text-sm">
               Don&apos;t have an account?{" "}
               <a href="/login" className="underline underline-offset-4">
-                Sign up
+                Sign in
               </a>
             </div>
           </form>

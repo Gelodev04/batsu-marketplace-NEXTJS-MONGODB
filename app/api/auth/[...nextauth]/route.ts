@@ -3,6 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { connectDB } from "@/lib/mongodb";
 import User from "@/models/User";
 import bcrypt from "bcryptjs";
+import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -32,17 +33,46 @@ export const authOptions: NextAuthOptions = {
         };
       },
     }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+    }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account, profile }) {
+      if (account?.provider === "google") {
+        await connectDB();
+        const existingUser = await User.findOne({ email: user.email });
+        if (!existingUser) {
+          await User.create({
+            name: user.name,
+            email: user.email,
+            role: "student",
+          });
+        }
+      }
+      return true;
+    },
+    async jwt({ token, user, account }) {
       if (user) {
-        token.role = (user as any).role; // store role in token
+        if ((user as any).role) {
+          token.role = (user as any).role;
+        } else if (user.email) {
+          await connectDB();
+          const dbUser = await User.findOne({ email: user.email });
+          token.role = dbUser?.role || "student";
+        }
+      } else if (token?.email && !token.role) {
+        await connectDB();
+        const dbUser = await User.findOne({ email: token.email });
+        token.role = dbUser?.role || "student";
       }
       return token;
     },
     async session({ session, token }) {
       if (token && session.user) {
-        (session.user as typeof session.user & { role?: string }).role = token.role as string;
+        (session.user as typeof session.user & { role?: string }).role =
+          token.role as string;
       }
       return session;
     },
