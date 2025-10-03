@@ -1,13 +1,18 @@
 "use client";
 
 import Image from "next/image";
-import type { Product } from "@/services/products/product";
+import { Product } from "@/types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 type ProductCardProps = {
   product: Product;
-  badge?: React.ReactNode; // e.g., Sold badge override
+  badge?: React.ReactNode;
   onClick?: () => void;
   className?: string;
+  showCheckbox?: boolean;
+  isSelected?: boolean;
+  onSelect?: (productId: string, selected: boolean) => void;
 };
 
 export function ProductCard({
@@ -15,6 +20,9 @@ export function ProductCard({
   badge,
   onClick,
   className,
+  showCheckbox = false,
+  isSelected = false,
+  onSelect,
 }: ProductCardProps) {
   const cover = product.images?.[0];
 
@@ -23,6 +31,16 @@ export function ProductCard({
       className={`rounded-md border p-4 ${className ?? ""}`}
       onClick={onClick}
     >
+      {/* Checkbox for selection */}
+      {showCheckbox && (
+        <Checkbox
+          checked={isSelected}
+          onCheckedChange={(checked) => {
+            onSelect?.(product._id, checked === true);
+          }}
+        />
+      )}
+
       <div className="mb-3">
         {cover ? (
           <Image

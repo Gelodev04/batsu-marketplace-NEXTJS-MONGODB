@@ -7,13 +7,18 @@ const ProductSchema = new Schema(
     price: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0 },
     condition: { type: String, enum: ["new", "used"], required: true },
-    images: { type: [String], default: [] }, 
+    images: { type: [String], default: [] },
     sold: { type: Boolean, default: false },
     tags: { type: [String], default: [] },
 
     // who created it (you can also store campus if needed)
     sellerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     sellerEmail: { type: String, required: true },
+    sellerCampus: {
+      type: String,
+      enum: ["alangilan", "pablo-borbon"],
+      required: true,
+    },
   },
   { timestamps: true }
 );

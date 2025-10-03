@@ -9,7 +9,7 @@ export default function LogoutButton() {
   };
 
   return (
-    <Button onClick={handleLogout} variant="outline">
+    <Button onClick={handleLogout} variant="outline" >
       Logout
     </Button>
   );

@@ -13,7 +13,7 @@ export default function AddProductButton() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button>Add Product</Button>
+        <Button color="secondary">Add Product</Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>

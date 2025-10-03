@@ -74,7 +74,7 @@ export function LoginForm({
         }
       } else {
         toast.success("Login successful");
-        router.push("/dashboard");
+        router.push("/profile");
       }
     } catch (err) {
       setError("Network error. Please check your connection.");

@@ -5,7 +5,9 @@ const UserSchema = new Schema(
     name: { type: String },
     email: { type: String, unique: true },
     password: { type: String },
-    image: { type: String},
+    image: { type: String },
+    followers: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
+    following: { type: [Schema.Types.ObjectId], ref: "User", default: [] },
     campus: {
       type: String,
       enum: ["alangilan", "pablo-borbon"],

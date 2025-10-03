@@ -44,6 +44,7 @@ export async function POST(req: Request) {
       ...parsed.data,
       sellerId: seller._id,
       sellerEmail: seller.email,
+      sellerCampus: seller.campus,
     });
 
     return NextResponse.json({ product }, { status: 201 });

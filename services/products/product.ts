@@ -1,37 +1,6 @@
-export type Condition = "new" | "used";
-
-export type CreateProductPayload = {
-  title: string;
-  description: string;
-  price: number;
-  stock: number;
-  condition: Condition;
-  images?: string[];
-  sold?: boolean;
-  tags?: string[];
-};
-
-export type Product = {
-  _id: string;
-  title: string;
-  description: string;
-  price: number;
-  stock: number;
-  condition: Condition;
-  images: string[];
-  sold: boolean;
-  tags: string[];
-  sellerId: string;
-  sellerEmail: string;
-  createdAt: string;
-  updatedAt: string;
-};
-
-export type ApiResult<T = unknown> = {
-  ok: boolean;
-  data?: T;
-  error?: string;
-};
+import { CreateProductPayload } from "@/types";
+import { ApiResult } from "@/types";
+import { Product } from "@/types";
 
 export async function createProduct(
   payload: CreateProductPayload

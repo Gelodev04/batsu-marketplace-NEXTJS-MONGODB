@@ -81,10 +81,12 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             role: "student",
             campus: "alangilan",
-            image: user.image || DEFAULT_AVATAR, // persist google image
+            image: user.image || DEFAULT_AVATAR,
+            followers: [], 
+            following: [],
           });
         } else if (!existing.image && user.image) {
-          existing.image = user.image; // backfill missing image
+          existing.image = user.image; 
           await existing.save();
         }
       }

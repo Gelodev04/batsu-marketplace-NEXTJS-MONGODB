@@ -1,0 +1,1 @@
+export type CampusId = "alangilan" | "pablo-borbon";

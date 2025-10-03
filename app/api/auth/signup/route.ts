@@ -41,6 +41,8 @@ export async function POST(req: Request) {
       password: hashedPassword,
       role: "student",
       campus,
+      followers: [],
+      following: [],
     });
 
     await newUser.save();
