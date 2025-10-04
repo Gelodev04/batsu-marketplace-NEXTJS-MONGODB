@@ -2,8 +2,11 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import ProfileUpdateForm from "./profile-update-form";
+import EditProfileButton from "./button/edit-profile-button";
 import { getUserProfile, UserProfile } from "../services/user";
+import AddProductButton from "@/components/products/add-product-button";
+import LogoutButton from "@/components/auth/logout-button";
+import ProfileHeaderSkeleton from "./loading/profile-header-skeleton";
 
 export default function ProfileHeader() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
@@ -29,11 +32,11 @@ export default function ProfileHeader() {
   }, []);
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <ProfileHeaderSkeleton />;
   }
 
   if (!userProfile) {
-    return <div>Failed to load profile</div>;
+    return <div className="p-6 text-red-500">Failed to load profile</div>;
   }
 
   return (
@@ -48,18 +51,22 @@ export default function ProfileHeader() {
             className="rounded-full"
           />
           <div>
-            <h1 className="text-2xl font-bold">{userProfile.name}!</h1>
+            <h1 className="text-2xl font-bold">{userProfile.name}</h1>
             <p className="text-muted-foreground">
               Campus: {userProfile.campus}
             </p>
           </div>
         </div>
-        <ProfileUpdateForm
+        <EditProfileButton
           user={userProfile}
-          onProfileUpdate={(updatedUser) => {
-            setUserProfile(updatedUser);
-          }}
+          onProfileUpdate={setUserProfile}
         />
+      </div>
+
+      {/* Buttons that depend on user data */}
+      <div className="flex gap-2 mb-6">
+        <AddProductButton />
+        <LogoutButton />
       </div>
     </div>
   );

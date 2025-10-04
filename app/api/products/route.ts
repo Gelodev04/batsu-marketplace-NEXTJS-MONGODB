@@ -12,9 +12,9 @@ const createProductSchema = z.object({
   price: z.number().nonnegative(),
   stock: z.number().int().nonnegative(),
   condition: z.enum(["new", "used"]),
-  images: z.array(z.string().url()).max(10).optional().default([]),
+  images: z.array(z.string().url()).max(10).min(1).default([]),
   sold: z.boolean().optional().default(false),
-  tags: z.array(z.string().min(1)).max(20).optional().default([]),
+  tags: z.array(z.string().min(1)).max(20).min(1).default([]),
 });
 
 export async function POST(req: Request) {

@@ -3,6 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDropzone, type Accept } from "react-dropzone";
 import { Button } from "@/components/ui/button";
+import Image from "next/image";
+import { X } from "lucide-react";
 
 export type ImageDropzoneProps = {
   onFilesChange?: (files: File[]) => void;
@@ -124,7 +126,9 @@ export function ImageDropzone({
           <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-2">
             {previews.map((p, i) => (
               <div key={`${p.file.name}-${i}`} className="relative group">
-                <img
+                <Image
+                  width={500}
+                  height={500}
                   src={p.url}
                   alt={p.file.name}
                   className="h-24 w-full object-cover rounded-md border"
@@ -136,7 +140,7 @@ export function ImageDropzone({
                   className="absolute top-1 right-1 rounded-md bg-black/60 text-white text-xs px-1 py-0.5 opacity-0 group-hover:opacity-100"
                   disabled={disabled}
                 >
-                  Remove
+                  <X />
                 </button>
               </div>
             ))}

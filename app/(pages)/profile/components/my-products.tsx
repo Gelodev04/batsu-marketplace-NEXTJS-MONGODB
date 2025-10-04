@@ -132,8 +132,10 @@ export default function MyProducts() {
             key={product._id}
             product={product}
             showCheckbox={true}
+            showEditButton={true}
             isSelected={selectedProducts.has(product._id)}
             onSelect={handleSelectProduct}
+            onProductUpdated={() => mutate()}
           />
         ))}
       </ul>
