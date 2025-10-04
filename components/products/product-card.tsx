@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Product } from "@/types";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
+import EditProductDialog from "@/app/(pages)/profile/components/button/edit-product-dialog";
 
 type ProductCardProps = {
   product: Product;
@@ -13,6 +13,8 @@ type ProductCardProps = {
   showCheckbox?: boolean;
   isSelected?: boolean;
   onSelect?: (productId: string, selected: boolean) => void;
+  showEditButton?: boolean;
+  onProductUpdated?: () => void;
 };
 
 export function ProductCard({
@@ -23,12 +25,14 @@ export function ProductCard({
   showCheckbox = false,
   isSelected = false,
   onSelect,
+  showEditButton = false,
+  onProductUpdated,
 }: ProductCardProps) {
   const cover = product.images?.[0];
 
   return (
     <li
-      className={`rounded-md border p-4 ${className ?? ""}`}
+      className={`rounded-md border relative p-4 ${className ?? ""}`}
       onClick={onClick}
     >
       {/* Checkbox for selection */}
@@ -39,6 +43,16 @@ export function ProductCard({
             onSelect?.(product._id, checked === true);
           }}
         />
+      )}
+
+      {/* Add edit button */}
+      {showEditButton && (
+        <div className="absolute top-2 right-2 z-10">
+          <EditProductDialog
+            product={product}
+            onProductUpdated={onProductUpdated || (() => {})}
+          />
+        </div>
       )}
 
       <div className="mb-3">

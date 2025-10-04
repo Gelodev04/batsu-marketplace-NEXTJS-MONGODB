@@ -15,6 +15,7 @@ import {
 import { toast } from "sonner";
 import { useCreateProduct } from "@/hooks/useCreateProduct";
 import ImageDropzone from "../ui/image-dropzone";
+import { useImageUpload } from "@/hooks/useImageUpload";
 
 export default function AddProductForm({
   onSuccess,
@@ -30,55 +31,64 @@ export default function AddProductForm({
   const [tags, setTags] = useState<string>("");
   const { createProduct, loading, error, setError } = useCreateProduct();
   const [files, setFiles] = useState<File[]>([]);
+  const { uploadImages, uploading } = useImageUpload();
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    async function uploadImages(selected: File[]): Promise<string[]> {
-      if (selected.length === 0) return [];
-      const form = new FormData();
-      selected.forEach((f) => form.append("files", f));
-      const res = await fetch("/api/upload", { method: "POST", body: form });
-      if (!res.ok) throw new Error("Upload failed");
-      const json = await res.json();
-      return json.urls as string[];
-    }
-
-    const uploadedUrls = await uploadImages(files);
-
-    const payload = {
-      title: title.trim(),
-      description: description.trim(),
-      price: Number(price),
-      stock: Number(stock),
-      condition,
-      images: uploadedUrls,
-      tags: tags
-        .split(",")
-        .map((s) => s.trim())
-        .filter(Boolean),
-    };
-
-    const res = await createProduct(payload);
-
-    if (!res.ok) {
-      toast.error("Product creation failed");
+    if (uploading) {
+      toast.warning("Please wait for images to finish uploading");
       return;
     }
 
-    toast.success("Product created");
-    onSuccess?.();
-    setTitle("");
-    setDescription("");
-    setPrice("");
-    setStock("1");
-    setCondition("used");
-    setImages("");
-    setTags("");
+    if (!title.trim() || !description.trim() || !price || files.length === 0) {
+      toast.error(
+        "Please fill in all required fields and upload at least one image"
+      );
+      return;
+    }
+
+    try {
+      const uploadedUrls = await uploadImages(files);
+      const payload = {
+        title: title.trim(),
+        description: description.trim(),
+        price: Number(price),
+        stock: Number(stock),
+        condition,
+        images: uploadedUrls,
+        tags: tags
+          .split(",")
+          .map((s) => s.trim())
+          .filter(Boolean),
+      };
+
+      const res = await createProduct(payload);
+
+      if (!res.ok) {
+        toast.error(res.error || "Product creation failed");
+        return;
+      }
+
+      toast.success("Product created");
+      onSuccess?.();
+
+      setTitle("");
+      setDescription("");
+      setPrice("");
+      setStock("1");
+      setCondition("used");
+      setImages("");
+      setTags("");
+      setFiles([]);
+    } catch (error) {
+      console.error("Error creating product:", error);
+      toast.error("Something went wrong while creating the product");
+    }
   };
 
   return (
-    <form onSubmit={handleCreate} className="space-y-4">
+    <form onSubmit={handleCreate} className="space-y-4" noValidate>
       <div className="grid gap-2">
         <Label htmlFor="title">Title</Label>
         <Input
@@ -99,6 +109,7 @@ export default function AddProductForm({
           onChange={(e) => setDescription(e.target.value)}
           required
           disabled={loading}
+          style={{ resize: "none" }}
         />
       </div>
 
@@ -163,7 +174,7 @@ export default function AddProductForm({
         />
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full" disabled={loading || uploading}>
         {loading ? "Creating..." : "Create Product"}
       </Button>
     </form>

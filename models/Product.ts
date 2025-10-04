@@ -1,4 +1,5 @@
 import { Schema, model, models } from "mongoose";
+import { arrayMinLength } from "@/lib/validator";
 
 const ProductSchema = new Schema(
   {
@@ -7,9 +8,18 @@ const ProductSchema = new Schema(
     price: { type: Number, required: true, min: 0 },
     stock: { type: Number, required: true, min: 0 },
     condition: { type: String, enum: ["new", "used"], required: true },
-    images: { type: [String], default: [] },
+    images: {
+      type: [String],
+      required: true,
+      validate: [arrayMinLength(1), "At least one image is required"],
+    },
+
     sold: { type: Boolean, default: false },
-    tags: { type: [String], default: [] },
+    tags: {
+      type: [String],
+      required: true,
+      validate: [arrayMinLength(1), "At least one tag is required"],
+    },
 
     // who created it (you can also store campus if needed)
     sellerId: { type: Schema.Types.ObjectId, ref: "User", required: true },
