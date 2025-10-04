@@ -4,7 +4,7 @@ import { useState } from "react";
 import { signIn } from "next-auth/react";
 
 export function useGoogleSignIn(
-  defaultCallback = "/dashboard"
+  defaultCallback = "/profile" 
 ) {
   const [googleLoading, setGoogleLoading] = useState(false);
 

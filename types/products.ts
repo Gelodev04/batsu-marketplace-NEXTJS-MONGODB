@@ -41,3 +41,19 @@ export type DeleteProductsResponse = {
   deletedCount: number;
   message: string;
 };
+
+export type UpdateProductPayload = {
+  title?: string;
+  description?: string;
+  price?: number;
+  stock?: number;
+  condition?: Condition;
+  images?: string[];
+  sold?: boolean;
+  tags?: string[];
+};
+
+export type UpdateProductResponse = {
+  product: Product;
+  message: string;
+};

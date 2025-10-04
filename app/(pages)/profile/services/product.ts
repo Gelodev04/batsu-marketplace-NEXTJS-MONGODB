@@ -1,4 +1,9 @@
-import { DeleteProductsPayload, DeleteProductsResponse } from "@/types";
+import {
+  DeleteProductsPayload,
+  DeleteProductsResponse,
+  UpdateProductPayload,
+  UpdateProductResponse,
+} from "@/types";
 import { ApiResult } from "@/types";
 
 export async function deleteProducts(
@@ -14,6 +19,27 @@ export async function deleteProducts(
     const data = await res.json().catch(() => ({}));
     if (!res.ok) {
       return { ok: false, error: data?.error || "Failed to delete products" };
+    }
+    return { ok: true, data };
+  } catch {
+    return { ok: false, error: "Network error" };
+  }
+}
+
+export async function updateProduct(
+  productId: string,
+  payload: UpdateProductPayload
+): Promise<ApiResult<UpdateProductResponse>> {
+  try {
+    const res = await fetch(`/api/products/${productId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      return { ok: false, error: data?.error || "Failed to update product" };
     }
     return { ok: true, data };
   } catch {
